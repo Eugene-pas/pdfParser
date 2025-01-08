@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Image</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            color: white;
+            background-color: rgb(26, 27, 27);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif
+        }
+        #canvas {
+            border: 1px solid black;
+        }
+        .p-10 {
+            padding: 10px;
+        }
+        .m-10 {
+            margin: 10px;
+        }
+        .ollama {
+            margin: 10px;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            box-shadow: 0 0 10px rgba(158, 158, 158, 0.5);
+            border-radius: 10px;
+        }
+        #textAI{
+            word-wrap: break-word;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: rgb(56, 56, 56);
+            width: 100%;
+        }
+        p{
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .cntrolPanel{
+            margin: 10px;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .btn{
+            padding: 10px;
+            margin: 10px;
+            border-radius: 10px;
+            background-color: rgb(26, 27, 27);
+            color: white;
+            border: 1px solid rgb(100, 100, 100);
+            cursor: pointer;
+        }
+        .btn:hover{
+            background-color: rgb(216, 216, 216);
+            color: rgb(26, 27, 27);
+        }
+        select{
+            padding: 5px;
+            border-radius: 10px;
+            background-color: rgb(26, 27, 27);
+            color: white;
+            border: 1px solid rgb(100, 100, 100);
+            cursor: pointer;
+        }
+        .btn:disabled{
+            background-color: rgb(58, 58, 58);
+            color: rgb(167, 167, 167);
+            cursor: not-allowed;
+            border: 0;
+        }
+        #sendBtn{
+           width: 100px;
+           height: 40px;
+        }
+        #promtText{
+            padding: 10px;
+            border-radius: 0px 0px 10px 10px;
+            background-color: rgb(26, 27, 27);
+            color: white;
+            border: 1px solid rgb(100, 100, 100);
+            cursor: pointer;
+            width: 100%;
+            max-width: 100%;
+            min-width: 100%;
+            min-height: 40vh;
+        }
+        #parseText{
+            padding: 10px;
+            border-radius: 10px;
+            background-color: rgb(26, 27, 27);
+            color: white;
+            border: 1px solid rgb(100, 100, 100);
+            cursor: pointer;
+            width: 100%;
+            max-width: 100%;
+            min-width: 100%;
+            min-height: 43vh;
+        }
+        .loading {
+            position: relative;
+            display: inline-block;
+            bottom: 14px;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(209, 209, 209, 0.3);
+            border-radius: 50%;
+            border-top-color: #ffffff;
+            animation: spin 1s ease-in-out infinite;
+            background-color: rgba(0, 0, 0, 0);
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-hidden {
+            display: none;
+        }
+
+        .uploadDiv{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .uploadDiv > div{
+            width: 33%;
+        }
+
+        .dotLoad{
+            text-align: center;
+        }
+
+        .dotLoad::after {
+            content: '';
+            display: inline-block;
+            width: 1em;
+            text-align: left;
+            animation: dots 1s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 100% {
+                content: '';
+            }
+            25% {
+                content: '.';
+            }
+            50% {
+                content: '..';
+            }
+            75% {
+                content: '...';
+            }
+        }
+
+        #uploadLabel{
+            cursor: pointer; 
+            display: inline-block; 
+            padding: 10px 20px; 
+            background-color: rgb(53 86 86); 
+            box-shadow: 0 0 10px rgba(158, 158, 158, 0.5);
+            color: white; 
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        #uploadLabel:hover{
+            background-color: rgb(216, 216, 216);
+            color: rgb(26, 27, 27);
+        }
+
+        .d_flex{
+            display: flex;
+        }
+        .align_items_center{
+            align-items: center;
+        }
+        .flex_grow{
+            flex-grow: 1;
+        }
+        .flex_column{
+            flex-direction: column;
+        }
+        .m_5 {
+        margin-bottom: 5px; /* Відступ знизу для відокремлення від текстової області */
+        }
+
+        .w_100 {
+            width: 100%;
+        }
+
+        .w_50 {
+            width: 50%;
+        }
+
+        .selectBtn  {
+            border-top: 1px solid rgb(100, 100, 100);
+            border-radius: 10px 10px 0px 0px;
+        }
+
+        .selectBtn button {
+            padding: 5px;       
+            border: 0px;
+            cursor: pointer;
+            border-radius: 0px;
+            margin: 0;
+        }
+
+        .selectBtn button:first-child {
+            border-radius: 10px 0px 0px 0px;
+        }
+
+        .selectBtn button:last-child {
+            border-radius: 0px 10px 0px 0px;
+        }
+
+        .checkedW{
+            background-color: rgb(216, 216, 216);
+            color: rgb(26, 27, 27);
+        }
+
+        #constructor{
+            display: none;
+            flex-grow: 1;
+            width: 100%;
+            flex-direction: column;
+            padding: 10px;
+            min-height: 40vh;
+            border-radius: 0px 0px 10px 10px;
+            border: 1px solid rgb(100, 100, 100);
+            border-top: 0px;
+        }
+
+        #promtText{
+            display: flex; 
+        }
+
+        .brace{
+            margin: 5px 0;
+            font-size: 20px;
+            color: rgb(100, 100, 100);
+        }
+
+        .brace_obj{
+            margin: 5px 0;
+            font-size: 20px;
+            color: rgb(136, 100, 71);
+        }
+
+        .constInputText{
+            padding: 6px;
+            border-radius: 10px;
+            background-color: rgb(26, 27, 27);
+            color: white;
+            border: 1px solid rgb(100, 100, 100);
+            cursor: pointer;
+        }
+
+        .btnPromt{
+            padding: 6px 10px;
+            border-radius: 10px;
+            background-color: rgb(26, 27, 27);
+            color: white;
+            border: 1px solid rgb(100, 100, 100);
+            cursor: pointer;
+        }
+
+        .btnPromt:hover{
+            background-color: rgb(216, 216, 216);
+            color: rgb(26, 27, 27);
+        }
+
+        .varDiv{
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 10px;
+            margin-left: 20px;
+        }
+
+        .hardVarDiv{
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .square_bracket
+        {
+            margin: 5px 0;
+            font-size: 20px;
+            color: rgb(79, 120, 156);
+        }
+
+        .vertical_line{
+            border-left: 1px solid rgb(100, 100, 100);
+            position: absolute;
+            margin: 41px 22px;
+            height: 49px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="cntrolPanel">
+        
+        <div class="uploadDiv">
+            <div class="d_flex align_items_center" style="gap: 5px;">
+                <label for="upload" id="uploadLabel">Upload File</label>
+                <input type="file" id="upload" accept="application/pdf" multiple style="display: none;">
+                <p id="fileName"></p>
+            </div>
+            <div><p style="display: none;" id="pdfParseLoad" class="dotLoad">PDF parsing in progress</p></div>
+            <div></div>
+        </div>
+        <br>
+
+        <!-- <canvas id="canvas"></canvas>
+        <br>
+        <button id="cropBtn">Crop and Save</button> -->
+    
+        <div class="d_flex align_items_center" style="gap: 10px;">
+            <div>
+                <label for="dropdown">Prompt for check:</label>
+                <select id="dropdown" name="dropdown">
+                </select>
+            </div>
+            <div>
+                <label for="dropdownParse">Parse type:</label>
+                <select id="dropdownParse" name="dropdownParse">
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <div class="p-10 d_flex align_items_center" style="width: 100%; gap: 5px;">
+        <div class="d_flex align_items_center flex_grow flex_column" >
+            <label class="m_5" for="promtText">Json structure</label>
+            <div class="d_flex align_items_center flex_grow flex_column w_100">
+                <div class="d_flex align_items_center w_100 selectBtn">
+                    <button id="constructorBtn" class="w_50">Constructor</button>
+                    <button id="codeBtn" class="w_50 checkedW">Code</button>
+                </div>
+                <textarea name="promt" id="promtText"></textarea>
+                <div id="constructor">
+                    <div>
+                        <label for="chooseVar">Type:</label>
+                        <select id="chooseVar" name="chooseVar">
+                        </select>
+                        <input style="width: 80px;" class="constInputText" placeholder="Name" type="text"></input>
+                        <input class="constInputText" placeholder="Promt" type="text"></input>
+                        <button class="btnPromt">+</button>
+                    </div>
+                    <hr style="margin-top: 10px;">
+                    <p class="brace">{</p>
+                        <div class="varDiv">
+                            <select name="var">
+                                <option value="">Text</option>
+                            </select>
+                            <input style="width: 80px;" class="constInputText" placeholder="Name" type="text"></input>
+                            <input class="constInputText" placeholder="Promt" type="text"></input>
+                            <button class="btnPromt">+</button>
+                            <button class="btnPromt">-</button>
+                        </div> 
+                        <div class="varDiv">
+                            <select name="var">
+                                <option value="">Number</option>
+                            </select>
+                            <input style="width: 80px;" class="constInputText" placeholder="Name" type="text"></input>
+                            <input class="constInputText" placeholder="Promt" type="text"></input>
+                            <button class="btnPromt">+</button>
+                            <button class="btnPromt">-</button>
+                        </div>
+                        <div class="varDiv">
+                            <div class="d_flex flex_column arreyBorder">
+                                <div class="hardVarDiv">
+                                    <select name="var">
+                                        <option value="">Arrey</option>
+                                    </select>
+                                    <input style="width: 80px;" class="constInputText" placeholder="Name" type="text"></input>
+                                    <input class="constInputText" placeholder="Promt" type="text"></input>
+                                    <button class="btnPromt">+</button>
+                                    <button class="btnPromt">-</button>
+                                    <span class="square_bracket">[</span>
+                                </div>
+                                <div style="margin-left: 40px;" class="varDiv">
+                                    <select name="var">
+                                        <option value="">Number</option>
+                                    </select>
+                                    <input style="width: 80px;" class="constInputText" placeholder="Name" type="text"></input>
+                                    <input class="constInputText" placeholder="Promt" type="text"></input>
+                                    <button class="btnPromt">+</button>
+                                    <button class="btnPromt">-</button>
+                                </div>
+                                <div class="vertical_line"></div>
+                                <div style="margin-left: 20px;">
+                                    <p class="square_bracket">]</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="varDiv">
+                            <div class="d_flex flex_column">
+                                <div class="hardVarDiv">
+                                    <select name="var">
+                                        <option value="">Object</option>
+                                    </select>
+                                    <input style="width: 80px;" class="constInputText" placeholder="Name" type="text"></input>
+                                    <input class="constInputText" placeholder="Promt" type="text"></input>
+                                    <button class="btnPromt">+</button>
+                                    <button class="btnPromt">-</button>
+                                    <span class="brace_obj">{</span>
+                                </div>
+                                <div style="margin-left: 40px;" class="varDiv">
+                                    <select name="var">
+                                        <option value="">Number</option>
+                                    </select>
+                                    <input style="width: 80px;" class="constInputText" placeholder="Name" type="text"></input>
+                                    <input class="constInputText" placeholder="Promt" type="text"></input>
+                                    <button class="btnPromt">+</button>
+                                    <button class="btnPromt">-</button>
+                                </div>
+                                <div class="vertical_line"></div>
+                                <div style="margin-left: 20px;">
+                                    <p class="brace_obj">}</p>
+                                </div>
+                            </div>
+                        </div> 
+                       
+                    <p class="brace">}</p>
+                </div>
+            </div>
+        </div>
+        <div class="d_flex align_items_center flex_grow flex_column">
+            <label class="m_5" for="parseText">PDF data</label>
+            <textarea name="text" id="parseText"></textarea>
+        </div>
+    </div>
+
+    <div class="ollama">
+        <div style="display: flex; align-items: center;"> 
+            <div>
+                <label for="dropdownAI">AI:</label>
+                <select id="dropdownAI" name="dropdownAI">
+                </select>
+                <label for="dropdownModel">Model:</label>
+                <select id="dropdownModel" name="dropdownModel">
+                </select>
+            </div>
+            <button id="sendBtn" class="btn" type="button">
+                Extract data  
+                <div id="loadingSpinner" class="loading-hidden loading"></div>
+            </button>
+            <button id="copyBtn" class="btn" type="button">Copy</button>
+            <button disabled id="downloadBtn" class="btn" type="button">Download</button>
+        </div>
+        <p id="textAI"></p>
+    </div>
+
+    <script src="./frontScript/dropDownPromt.js"></script>
+    <script src="./frontScript/dropDownModel.js"></script>
+    <script src="./frontScript/dropDownParse.js"></script>
+    <script >
+        const constructorBtn = document.getElementById('constructorBtn');
+        const codeBtn = document.getElementById('codeBtn');
+        const chooseVar = document.getElementById('chooseVar');
+        const chooses = {
+            TEXT: 'Text',
+            NUMBER: 'Number',
+            ARRAY: 'Array',
+            OBJECT: 'Object',
+        };
+
+        for (const key in chooses) {
+            if (Object.hasOwnProperty.call(chooses, key)) {
+                const element = chooses[key];
+                chooseVar.appendChild(new Option(key, element));
+            }
+        }
+
+        constructorBtn.addEventListener('click', function(){
+            document.getElementById('constructor').style.display = 'flex';
+            document.getElementById('promtText').style.display = 'none';
+            constructorBtn.classList.add('checkedW');
+            codeBtn.classList.remove('checkedW');
+        });
+
+        codeBtn.addEventListener('click', function(){
+            document.getElementById('constructor').style.display = 'none';
+            document.getElementById('promtText').style.display = 'block';
+            constructorBtn.classList.remove('checkedW');
+            codeBtn.classList.add('checkedW');
+        });
+
+    </script>
+    <script>  
+        
+        dropDownPromt(); //./dropDownPromt.js
+        dropDownModel(model); //./dropDownModel.js
+        dropDownParse(reqParseType); //./dropDownParse.js
+
+            function getContent(format, text = '') {
+
+                console.log('format :>> ', format);
+
+                switch (format) {
+                    case 'image':
+                        return `${textArea.value}
+If there is no data for the field, leave it blank. Numbers without ",".                       
+Process the image (format only json, Don't write anything except the json content itself.)`
+                        break;
+                    case 'pdf':
+                        return `${textArea.value}
+If there is no data for the field, leave it blank. Numbers without ",".
+Process the data (format only json, Don't write anything except the json content itself.):
+${text}`
+                    default:
+                        break;
+                }
+
+                return textArea.value
+
+            }
+
+            const sendBtn = document.getElementById('sendBtn');
+            const copyBtn = document.getElementById('copyBtn');
+            const textAI = document.getElementById('textAI');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const uploadLabel = document.getElementById("uploadLabel");
+            const fileNameDisplay = document.getElementById("fileName");
+            const uploadInput = document.getElementById("upload");
+            const parseText = document.getElementById("parseText");
+            const downloadBtn = document.getElementById("downloadBtn");
+            const textArea = document.getElementById('promtText');
+
+            let base64String = [];
+            let pdfText = '';
+
+            sendBtn.disabled = true;
+            copyBtn.disabled = true;
+
+            // async function GPTChatRequestAsync() {
+            //     try {
+            //         const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            //             method: 'POST',
+            //             headers: {
+            //                 'Content-Type': 'application/json'
+            //             },
+            //             body: JSON.stringify({
+            //                 model: "gpt-3.5-turbo",
+            //                 messages: [
+            //                     {
+            //                         role: "user",
+            //                         content: 'Hello'
+            //                         // content: getContent('pdf', pdfText)
+            //                     }
+            //                 ]
+            //             })
+            //         });
+
+            //         if (!response.ok) {
+            //             throw new Error(`HTTP error! Status: ${response.status}`);
+            //         }
+
+            //         const data = await response.json();
+
+            //         // Валідація відповіді
+            //         if (!data || typeof data !== 'object') {
+            //             throw new Error('Invalid response format');
+            //         }
+
+            //         if (!data.choices || !Array.isArray(data.choices) || data.choices.length === 0) {
+            //             throw new Error('Invalid response structure: missing or empty choices');
+            //         }
+
+            //         if (!data.choices[0].message || !data.choices[0].message.content) {
+            //             throw new Error('Invalid response structure: missing message content');
+            //         }
+
+            //         // Виведення результату в консоль
+            //         console.log('Response:', data.choices[0].message.content);
+
+            //     } catch (error) {
+            //         console.error('Error:', error.message);
+            //     }
+            // }
+
+            function GPTChatRequest() {
+                    const formData = new FormData();
+                    formData.append('text', getContent('pdf', parseText.value));
+                    formData.append('model', model);
+                    fetch('http://localhost:3000/GPT/chat', {
+                        method: 'POST',
+                        body: formData
+                    })
+                        .then(response => response.text())
+                        .then(data => {
+                            console.log('data :>> ', data);
+                            copyBtn.disabled = false;
+                            sendBtn.disabled = false;
+                            loadingSpinner.classList.add('loading-hidden');
+                            textAI.innerText = data;
+                            downloadBtn.disabled = false;
+                        })
+                        .catch(error => {
+                            console.error('Error:', error)
+                            loadingSpinner.classList.add('loading-hidden');
+                            textAI.innerText = 'Error: ' + error.message;
+                        });
+            }
+
+            function OllamaChatRequest() {
+
+                console.log('parseText.value :>> ', parseText.value);
+                try {
+                    fetch('http://localhost:11434/api/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            model: base64String.length ? "llama3.2-vision" : model,
+                            format: "json",
+                            messages: [
+                                {
+                                    role: "user",
+                                    content: getContent((base64String.length ? 'image' : 'pdf'), parseText.value),
+                                    ...(base64String.length ? { images: base64String } : {})
+                                }
+                            ],
+                            option: {
+                                temperature: 0.4,
+                            }
+                        })
+                    })
+                        .then(response => {
+                            const reader = response.body.getReader();
+                            const decoder = new TextDecoder();
+                            let result = '';
+
+                            // Читання потоку даних
+                            function readStream() {
+                                reader.read().then(({ done, value }) => {
+                                    if (done) {
+                                        console.log("Stream finished");
+                                        copyBtn.disabled = false;
+                                        sendBtn.disabled = false;
+                                        base64String = [];
+                                        loadingSpinner.classList.add('loading-hidden');
+                                        downloadBtn.disabled = false;
+                                        return;
+                                    }
+
+                                    let parsedValue = {};
+
+                                    try {
+                                        parsedValue = JSON.parse(decoder.decode(value, { stream: true }));
+                                    } catch (error) {
+                                        result = value;
+                                    }
+
+                                    if (parsedValue.done) {
+                                        console.log('parsedValue :>> ', parsedValue);
+                                    }
+
+                                    result += parsedValue?.message?.content;
+                                    textAI.innerText = result.trim();
+                                    // Можна додавати логіку для обробки проміжних даних
+                                    readStream(); // продовжуємо читати далі
+                                });
+                            }
+                            readStream(); // запуск потоку
+                        })
+                        .catch(error => {
+                            loadingSpinner.classList.add('loading-hidden');
+                            console.error('Error:', error)
+                        });
+                } catch (error) {
+                    console.error('Error:', error)
+                    textAI.innerText = 'Error: ' + error.message;
+
+                }
+            }
+
+            sendBtn.addEventListener('click', async function () {
+                loadingSpinner.classList.remove('loading-hidden');
+                sendBtn.disabled = true;
+
+                switch (AI) {
+                    case AIType.OLLAMA:
+                        OllamaChatRequest();
+                        break;
+                    case AIType.GPT:
+                        if(pdfText)
+                            GPTChatRequest();
+                        break;
+                    default:
+                        break;
+                }
+
+            });
+
+            downloadBtn.addEventListener('click', function () {
+
+                    try {
+                        // Отримуємо текстове значення з textAI.innerText
+                        const textContent = textAI.innerText;
+
+                        // Перевірка чи є текст валідним JSON
+                        JSON.parse(textContent);
+                        
+                        // Створюємо новий Blob з JSON-контентом
+                        const blob = new Blob([textContent], { type: 'application/json' });
+
+                        // Створюємо посилання для завантаження файлу
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = 'content.json';
+
+                        // Додаємо посилання до документа і симулюємо клік
+                        document.body.appendChild(link);
+                        link.click();
+
+                        // Видаляємо посилання з документа
+                        document.body.removeChild(link);
+
+                    } catch (error) {
+                        // Виводимо повідомлення про помилку
+                        console.error('Error while creating JSON:', error);
+                        alert('An error occurred: invalid JSON. Please check the text content.');
+                    }
+                });
+
+            function PDFupload(files) {
+                base64String = [];
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+
+                    if (file) {
+                        const reader = new FileReader();
+
+                        if (file.type.startsWith('image/')) {
+                            reader.onload = function (e) {
+                                base64String.push(e.target.result.split(',')[1]);
+                                console.log('base64String :>> ', base64String);
+                            };
+                            sendBtn.disabled = false;
+                            reader.readAsDataURL(file); // Зчитуємо зображення як Data URL
+                        } else if (file.type === 'application/pdf') {
+                            const pdfParseLoad = document.getElementById('pdfParseLoad');
+                            pdfParseLoad.style.display = 'block';
+                            sendBtn.disabled = true;
+
+                            const formData = new FormData();
+                            formData.append('pdfFile', file);
+                            formData.append('parseType', reqParseType);
+
+                            fetch('http://localhost:3000/upload', {
+                                method: 'POST',
+                                body: formData
+                            })
+                                .then(response => response.text())
+                                .then(data => {
+                                    console.log('data :>> ', data);
+                                    pdfText = data;
+                                    parseText.value = data;
+                                    sendBtn.disabled = false;
+                                    pdfParseLoad.style.display = 'none';
+                                })
+                                .catch(error => {
+                                    pdfParseLoad.style.display = 'none';
+                                    console.error('Error:', error)
+                                    textAI.innerText = 'Error: ' + error.message;
+                                });
+                            //reader.readAsDataURL(file); // Зчитуємо PDF як Data URL
+                        } else {
+                            console.log('Unsupported file type');
+                        }
+
+                    } else {
+                        console.log('No file selected');
+                    }
+                }
+            }
+
+            let selectFiles = [];
+
+            uploadInput.addEventListener('change', function (event) {
+
+                if (uploadInput.files.length > 0) {
+                    fileNameDisplay.textContent = `${Array.from(uploadInput.files).map(file => file.name).join(", ")}`;
+                } else {
+                    fileNameDisplay.textContent = "No file chosen";
+                }
+
+                selectFiles = [...event.target.files];
+
+                PDFupload(selectFiles);
+                uploadInput.value = '';
+            }
+            );
+
+            dropdownParse.addEventListener('change', (e) => {
+                reqParseType = e.target.value;
+                console.log('reqParseType :>> ', reqParseType);
+                if(selectFiles.length)
+                    PDFupload(selectFiles);
+            })
+
+            document.getElementById('copyBtn').addEventListener('click', function () {
+                // Створення тимчасового текстового поля
+                let tempInput = document.createElement('textarea');
+                tempInput.value = textAI.textContent;
+
+                // Додавання тимчасового поля до тіла документа
+                document.body.appendChild(tempInput);
+
+                // Виділення тексту у тимчасовому полі
+                tempInput.select();
+                tempInput.setSelectionRange(0, 99999); // Для мобільних пристроїв
+
+                // Копіювання виділеного тексту
+                document.execCommand('copy');
+
+                // Видалення тимчасового поля
+                document.body.removeChild(tempInput);
+            });
+        // document.getElementById('upload').addEventListener('change', function (e) {
+        //     const canvas = document.getElementById('canvas');
+        //     const ctx = canvas.getContext('2d');
+        //     const reader = new FileReader();
+
+        //     reader.onload = function (event) {
+        //         const img = new Image();
+        //         img.onload = function () {
+        //             canvas.width = img.width;
+        //             canvas.height = img.height;
+        //             ctx.drawImage(img, 0, 0);
+        //             // Встановлюємо початкові координати та розміри області виділення
+        //             const cropArea = { x: 50, y: 50, width: 200, height: 200 };
+        //             drawCropArea(ctx, cropArea);
+
+        //             canvas.addEventListener('mousedown', function (e) {
+        //                 const rect = canvas.getBoundingClientRect();
+        //                 const startX = e.clientX - rect.left;
+        //                 const startY = e.clientY - rect.top;
+
+        //                 canvas.addEventListener('mousemove', onMouseMove);
+        //                 canvas.addEventListener('mouseup', onMouseUp);
+
+        //                 function onMouseMove(e) {
+        //                     const currentX = e.clientX - rect.left;
+        //                     const currentY = e.clientY - rect.top;
+        //                     cropArea.width = currentX - startX;
+        //                     cropArea.height = currentY - startY;
+        //                     ctx.drawImage(img, 0, 0);
+        //                     drawCropArea(ctx, cropArea);
+        //                 }
+
+        //                 function onMouseUp() {
+        //                     canvas.removeEventListener('mousemove', onMouseMove);
+        //                     canvas.removeEventListener('mouseup', onMouseUp);
+        //                 }
+        //             });
+        //         };
+        //         img.src = event.target.result;
+        //     };
+
+        //     reader.readAsDataURL(e.target.files[0]);
+        // });
+
+        // document.getElementById('cropBtn').addEventListener('click', function () {
+        //     const canvas = document.getElementById('canvas');
+        //     const ctx = canvas.getContext('2d');
+        //     const cropCanvas = document.createElement('canvas');
+        //     const cropCtx = cropCanvas.getContext('2d');
+        //     const cropArea = { x: 50, y: 50, width: 200, height: 200 };
+
+        //     cropCanvas.width = cropArea.width;
+        //     cropCanvas.height = cropArea.height;
+        //     cropCtx.drawImage(canvas, cropArea.x, cropArea.y, cropArea.width, cropArea.height, 0, 0, cropArea.width, cropArea.height);
+
+        //     const croppedImage = cropCanvas.toDataURL('image/png');
+        //     const a = document.createElement('a');
+        //     a.href = croppedImage;
+        //     a.download = 'cropped-image.png';
+        //     a.click();
+        // });
+
+        // function drawCropArea(ctx, cropArea) {
+        //     ctx.strokeStyle = 'red';
+        //     ctx.lineWidth = 2;
+        //     ctx.strokeRect(cropArea.x, cropArea.y, cropArea.width, cropArea.height);
+        // }
+
+    </script>
+</body>
+
+</html>

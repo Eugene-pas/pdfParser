@@ -10,9 +10,12 @@ const { PDFDocument } = require('pdf-lib');
 const { exec } = require('child_process');
 const util = require('util');
 const path = require('path');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 // Завантажуємо конфігурацію з .env файлу
 dotenv.config();
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY,);
 
 // Налаштовуємо OpenAI API
 const openai = new OpenAI({
@@ -168,6 +171,29 @@ app.post('/GPT/chat', upload.single(), async (req, res) => {
     } catch (error) {
         console.error('Помилка при взаємодії з OpenAI API:', error);
         res.status(500).json({ error: 'Помилка при взаємодії з OpenAI API' });
+    }
+});
+
+app.post('/gemini/chat', upload.single(), async (req, res) => {
+    try {
+        const { text, model: modelName } = req.body;
+       
+        if (!text) {
+            return res.status(400).json({ error: 'Повідомлення обов’язкове' });
+        }
+
+        const model = genAI.getGenerativeModel({ model: modelName });
+
+        const result = await model.generateContent(text);
+
+        const resText = result.response.text();
+
+        console.log(resText);
+       
+        res.status(200).send(resText);
+    } catch (error) {
+        console.error('Помилка при взаємодії з gemini API:', error);
+        res.status(500).json({ error: 'Помилка при взаємодії з gemini API' });
     }
 });
 

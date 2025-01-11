@@ -620,6 +620,30 @@ ${text}`
                         });
             }
 
+            function GEMINIChatRequest() {
+                    const formData = new FormData();
+                    formData.append('text', getContent('pdf', parseText.value));
+                    formData.append('model', model);
+                    fetch('http://localhost:3000/gemini/chat', {
+                        method: 'POST',
+                        body: formData
+                    })
+                        .then(response => response.text())
+                        .then(data => {
+                            console.log('data :>> ', data);
+                            copyBtn.disabled = false;
+                            sendBtn.disabled = false;
+                            loadingSpinner.classList.add('loading-hidden');
+                            textAI.innerText = data;
+                            downloadBtn.disabled = false;
+                        })
+                        .catch(error => {
+                            console.error('Error:', error)
+                            loadingSpinner.classList.add('loading-hidden');
+                            textAI.innerText = 'Error: ' + error.message;
+                        });
+            }
+
             function OllamaChatRequest() {
 
                 console.log('parseText.value :>> ', parseText.value);
@@ -704,6 +728,10 @@ ${text}`
                     case AIType.GPT:
                         if(pdfText)
                             GPTChatRequest();
+                        break;
+                    case AIType.GEMINI:
+                        if(pdfText)
+                            GEMINIChatRequest();
                         break;
                     default:
                         break;

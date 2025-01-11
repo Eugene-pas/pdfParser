@@ -1,5 +1,5 @@
 let AI = 'OLLAMA';
-const AIType = { OLLAMA: 'OLLAMA', GPT: 'GPT' };
+const AIType = { OLLAMA: 'OLLAMA', GPT: 'GPT', GEMINI: 'GEMINI' };
 let model = '';
 
 function dropDownModel() {
@@ -14,12 +14,17 @@ function dropDownModel() {
     }, GPT: {
       gpt_3_5_turbo: 'gpt-3.5-turbo',
       gpt_4o_mini: 'gpt-4o-mini'
+    },
+    GEMINI: {
+      gemini_1_5_flash: 'gemini-1.5-flash',
+      gemini_2_0_flash_exp: 'gemini-2.0-flash-exp'
     }
   };
 
   const arreyAI = {
     'Ollama': AIType.OLLAMA,
     'GPT': AIType.GPT,
+    'Gemini': AIType.GEMINI
   };
 
   const dropdownAI = document.getElementById('dropdownAI');
@@ -47,7 +52,22 @@ function dropDownModel() {
 
   function setModelSelect() {
     dropdownModel.innerHTML = '';
-    model = AI === 'OLLAMA' ? ModelType.OLLAMA.llama3_2 : ModelType.GPT.gpt_3_5_turbo;
+
+    switch (AI) {
+      case AIType.OLLAMA:
+        model = ModelType.OLLAMA.llama3_2;
+
+        break;
+      case AIType.GPT:
+        model = ModelType.GPT.gpt_3_5_turbo;
+        break;
+      case AIType.GEMINI:
+        model = ModelType.GEMINI.gemini_1_5_flash;
+        break;
+
+      default:
+        break;
+    }
 
     for (const key in arreyModel) {
       if (Object.hasOwnProperty.call(arreyModel, key)) {
